@@ -17,10 +17,6 @@ files (e.g. `0.wav`, `minus.wav`, ...) to be used in interactive voice applicati
 
 ## Usage Examples
 
-### Runtime Parsing into 2D std::vector
-
-#### Example:
-
 ``` C++
 #include "number_to_georgian.h"
 
@@ -29,13 +25,13 @@ files (e.g. `0.wav`, `minus.wav`, ...) to be used in interactive voice applicati
 assert(NumberToGeorgian::toWord(0L) == "ნული"s);
 assert(NumberToGeorgian::toSymbolic(0L) == std::vector<std::string>{"0"s});
 
-
-assert(NumberToGeorgian::toSymbolic(-6'872'146L)
-		== std::vector<std::string>{"minus"s, "6"s, "1e6_"s, "800_"s, "60_"s, "12"s, "1000_"s, "100_"s, "40_"s, "6"s});
 assert(NumberToGeorgian::toWords(-6'872'146L)
-		== "მინუს ექვსი მილიონ რვაას სამოცდათორმეტი ათას ას ორმოცდაექვსი"s);
+	== "მინუს ექვსი მილიონ რვაას სამოცდათორმეტი ათას ას ორმოცდაექვსი"s);
+assert(NumberToGeorgian::toSymbolic(-6'872'146L)
+	== std::vector<std::string>{"minus"s, "6"s, "1e6_"s, "800_"s, "60_"s, "12"s, "1000_"s, "100_"s, "40_"s, "6"s});
 ```
 
+Please see `NumberToGeorgian::toSymbolic` for a list of possible returned values.
 
 ## Copyright
 
