@@ -11,6 +11,7 @@ License: Zlib
 #include <string_view>
 #include <map>
 #include <cstdint>
+#include <stdexcept>
 
 
 
