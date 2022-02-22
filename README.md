@@ -9,6 +9,7 @@
 - Header-only.
 - Requires only standard C++ (C++17).
 - Extensively tested using [Catch2](https://github.com/catchorg/Catch2).
+- Supports the whole 64-bit signed integer range.
 - Can output a string of Georgian words.
 - Can output a vector of strings, where each element is a symbolic (ASCII) representation
 of a Georgian word (or part of a word). This is useful for creating a library of sound

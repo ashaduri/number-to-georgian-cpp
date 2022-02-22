@@ -28,6 +28,18 @@ TEST_CASE("NumberToGeorgian", "")
 	REQUIRE(NumberToGeorgian::toWords(-6'872'146L)
 			== "მინუს ექვსი მილიონ რვაას სამოცდათორმეტი ათას ას ორმოცდაექვსი"s);
 
+	REQUIRE(NumberToGeorgian::toWords(1'000'000'000L)
+			== "ერთი მილიარდი"s);
+
+	REQUIRE(NumberToGeorgian::toWords(1'000'000'000'000L)
+			== "ერთი ტრილიონი"s);
+
+	REQUIRE(NumberToGeorgian::toWords(1'000'000'000'000'000L)
+			== "ერთი კვადრილიონი"s);
+
+	REQUIRE(NumberToGeorgian::toWords(1'000'000'000'000'000'000L)
+			== "ერთი კვინტილიონი"s);
+
 }
 
 

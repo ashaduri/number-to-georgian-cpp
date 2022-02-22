@@ -62,6 +62,13 @@ class NumberToGeorgian {
 
 
 		/**
+		 * A helper for toSymbolicWithSpaces(), high numbers.
+		 */
+		static inline std::vector<std::string> toSymbolicWithSpacesHelperHighNumbers(std::int64_t number, bool add_spaces,
+				std::int64_t divisor, std::string&& symbolic, std::string&& symbolic_ext);
+
+
+		/**
 		 * Move to_append vector to the end of result.
 		 * \return result
 		 */
@@ -214,29 +221,8 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 
 
 	if (number < 1'000'000'000) {
-		auto first_digits = number / 1'000'000;
-		auto remainder = number % 1'000'000;
-
-		// [...] მილიონი.
-		if (remainder == 0) {
-			result = toSymbolicWithSpaces(first_digits, add_spaces);
-			if (add_spaces) {
-				result.emplace_back();
-			}
-			result.emplace_back("1e6");
-			return result;
-		}
-
-		// [...] მილიონ [...].
-		result = toSymbolicWithSpaces(first_digits, add_spaces);
-		if (add_spaces) {
-			result.emplace_back();
-		}
-		result.emplace_back("1e6_"s);
-		if (add_spaces) {
-			result.emplace_back();
-		}
-		return appendToResult(result, toSymbolicWithSpaces(remainder, add_spaces));
+		return toSymbolicWithSpacesHelperHighNumbers(number, add_spaces,
+				1'000'000, "1e6"s, "1e6_"s);
 	}
 
 
@@ -251,29 +237,95 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 	}
 
 
-	if (number > 1'000'000'000) {
-		auto first_digits = number / 1'000'000'000;
-		auto remainder = number % 1'000'000'000;
+	if (number < 1'000'000'000'000) {
+		return toSymbolicWithSpacesHelperHighNumbers(number, add_spaces,
+				1'000'000'000, "1e9"s, "1e9_"s);
+	}
 
-		if (remainder == 0) {
-			result = toSymbolicWithSpaces(first_digits, add_spaces);
-			if (add_spaces) {
-				result.emplace_back();
-			}
-			result.emplace_back("1e9");
-			return result;
+
+	// ერთი ტრილიონი.
+	if (number == 1'000'000'000'000) {
+		result = {"1"s};
+		if (add_spaces) {
+			result.emplace_back();
 		}
+		result.emplace_back("1e12"s);
+		return result;
+	}
 
+
+	if (number < 1'000'000'000'000'000) {
+		return toSymbolicWithSpacesHelperHighNumbers(number, add_spaces,
+				1'000'000'000'000, "1e12"s, "1e12_"s);
+	}
+
+
+	// ერთი კვადრილიონი.
+	if (number == 1'000'000'000'000'000) {
+		result = {"1"s};
+		if (add_spaces) {
+			result.emplace_back();
+		}
+		result.emplace_back("1e15"s);
+		return result;
+	}
+
+
+	if (number < 1'000'000'000'000'000'000) {
+		return toSymbolicWithSpacesHelperHighNumbers(number, add_spaces,
+				1'000'000'000'000'000, "1e15"s, "1e15_"s);
+	}
+
+
+	// ერთი კვინტილიონი.
+	if (number == 1'000'000'000'000'000'000) {
+		result = {"1"s};
+		if (add_spaces) {
+			result.emplace_back();
+		}
+		result.emplace_back("1e18"s);
+		return result;
+	}
+
+
+	// The limit is ~9 quintillion.
+	return toSymbolicWithSpacesHelperHighNumbers(number, add_spaces,
+				1'000'000'000'000'000'000, "1e15"s, "1e15_"s);
+}
+
+
+
+std::vector<std::string> NumberToGeorgian::toSymbolicWithSpacesHelperHighNumbers(std::int64_t number, bool add_spaces,
+		std::int64_t divisor, std::string&& symbolic, std::string&& symbolic_ext)
+{
+	using namespace std::string_literals;
+
+	std::vector<std::string> result;
+
+	auto first_digits = number / divisor;
+	auto remainder = number % divisor;
+
+	// [...] მილიონი (მილიარდი, ტრილიონი, ...).
+	if (remainder == 0) {
 		result = toSymbolicWithSpaces(first_digits, add_spaces);
 		if (add_spaces) {
 			result.emplace_back();
 		}
-		result.emplace_back("1e9_"s);
-		return appendToResult(result, toSymbolicWithSpaces(remainder, add_spaces));
+		result.emplace_back(std::move(symbolic));
+		return result;
 	}
 
+	// [...] მილიონ (მილიარდ, ტრილიონ, ...) [...].
+	result = toSymbolicWithSpaces(first_digits, add_spaces);
+	if (add_spaces) {
+		result.emplace_back();
+	}
+	result.emplace_back(std::move(symbolic_ext));
+	if (add_spaces) {
+		result.emplace_back();
+	}
 
-	return result;
+	return appendToResult(result, toSymbolicWithSpaces(remainder, add_spaces));
 }
 
 
@@ -349,11 +401,15 @@ std::string_view NumberToGeorgian::symbolicToWord(std::string_view symbolic)
 		{"1e9_"sv, "მილიარდ"sv},
 
 		// The higher numbers may be implemented in short-scale or long-scale styles.
-		// We use the short scale.
-		{"1e12"sv, "ტრილიონ"sv},
+		// We use the short scale, as it is common in Georgia.
+		{"1e12"sv, "ტრილიონი"sv},
 		{"1e12_"sv, "ტრილიონ"sv},
+		{"1e15"sv, "კვადრილიონი"sv},
+		{"1e15_"sv, "კვადრილიონ"sv},
+		{"1e18"sv, "კვინტილიონი"sv},
+		{"1e18_"sv, "კვინტილიონ"sv},
 	};
-	
+
 	auto iter = symbols_to_words.find(symbolic);
 	if (iter == symbols_to_words.end()) {
 		throw std::runtime_error("Internal error: No corresponding Georgian word found for a symbolic representation of a piece of a number \""s
