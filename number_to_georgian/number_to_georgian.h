@@ -121,43 +121,43 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 		return {std::to_string(number)};
 	}
 
-	// ოცდა...
+	// ოცდა[...]
 	if (number < 40) {
 		result = {"20_"s};
 		return appendToResult(result, toSymbolicWithSpaces(number - 20, add_spaces));
 	}
 
-	// ორმოცდა...
+	// ორმოცდა[...]
 	if (number < 60) {
 		result = {"40_"s};
 		return appendToResult(result, toSymbolicWithSpaces(number - 40, add_spaces));
 	}
 
-	// სამოცდა...
+	// სამოცდა[...]
 	if (number < 80) {
 		result = {"60_"s};
 		return appendToResult(result, toSymbolicWithSpaces(number - 60, add_spaces));
 	}
 
-	// ოთხმოცდა...
+	// ოთხმოცდა[...]
 	if (number < 100) {
 		result = {"80_"s};
 		return appendToResult(result, toSymbolicWithSpaces(number - 80, add_spaces));
 	}
 
 
-	// ას, ორას, სამას, ..., ცხრაას.
-	// ასი, ორასი, სამასი, ..., ცხრაასი.
 	if (number < 1000) {
-		auto digit = (number - (number % 100)) / 100;
-		auto remainder = (number % 100);
+		auto first_digit = number / 100;
+		auto remainder = number % 100;
 
+		// ასი, ორასი, სამასი, ..., ცხრაასი.
 		if (remainder == 0) {
 			result.emplace_back(std::to_string(number));
 			return result;
 		}
 
-		result = {std::to_string(digit * 100) + "_"s};
+		// ას [...], ორას [...], ..., ცხრაას [...] .
+		result = {std::to_string(first_digit * 100) + "_"s};
 		if (add_spaces) {
 			result.emplace_back();
 		}
@@ -166,18 +166,19 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 	}
 
 
-	// ათასი
+	// ათასი (not "ერთი ათასი").
 	if (number == 1000) {
-		return {"1000"};
+		return {"1000"s};
 	}
 
 
 	if (number < 1'000'000) {
-		auto digit = (number - (number % 1000)) / 1000;
-		auto remainder = (number % 1000);
+		auto first_digits = number / 1000;
+		auto remainder = number % 1000;
 
+		// [...] ათასი.
 		if (remainder == 0) {
-			result = toSymbolicWithSpaces(digit, add_spaces);
+			result = toSymbolicWithSpaces(first_digits, add_spaces);
 			if (add_spaces) {
 				result.emplace_back();
 			}
@@ -185,9 +186,10 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 			return result;
 		}
 
-		// Don't do "erti atas ..."
-		if (digit != 1) {
-			result = toSymbolicWithSpaces(digit, add_spaces);
+		// [...] ათას [...].
+		// Also, don't do "ერთი ათას ...".
+		if (first_digits != 1) {
+			result = toSymbolicWithSpaces(first_digits, add_spaces);
 			if (add_spaces) {
 				result.emplace_back();
 			}
@@ -200,6 +202,7 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 	}
 
 
+	// ერთი მილიონი
 	if (number == 1'000'000) {
 		result = {"1"s};
 		if (add_spaces) {
@@ -211,11 +214,12 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 
 
 	if (number < 1'000'000'000) {
-		auto digit = (number - (number % 1'000'000)) / 1'000'000;
-		auto remainder = (number % 1'000'000);
+		auto first_digits = number / 1'000'000;
+		auto remainder = number % 1'000'000;
 
+		// [...] მილიონი.
 		if (remainder == 0) {
-			result = toSymbolicWithSpaces(digit, add_spaces);
+			result = toSymbolicWithSpaces(first_digits, add_spaces);
 			if (add_spaces) {
 				result.emplace_back();
 			}
@@ -223,7 +227,8 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 			return result;
 		}
 
-		result = toSymbolicWithSpaces(digit, add_spaces);
+		// [...] მილიონ [...].
+		result = toSymbolicWithSpaces(first_digits, add_spaces);
 		if (add_spaces) {
 			result.emplace_back();
 		}
@@ -235,6 +240,7 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 	}
 
 
+	// ერთი მილიარდი.
 	if (number == 1'000'000'000) {
 		result = {"1"s};
 		if (add_spaces) {
@@ -246,11 +252,11 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 
 
 	if (number > 1'000'000'000) {
-		auto digit = (number - (number % 1'000'000'000)) / 1'000'000'000;
-		auto remainder = (number % 1'000'000'000);
+		auto first_digits = number / 1'000'000'000;
+		auto remainder = number % 1'000'000'000;
 
 		if (remainder == 0) {
-			result = toSymbolicWithSpaces(digit, add_spaces);
+			result = toSymbolicWithSpaces(first_digits, add_spaces);
 			if (add_spaces) {
 				result.emplace_back();
 			}
@@ -258,7 +264,7 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 			return result;
 		}
 
-		result = toSymbolicWithSpaces(digit, add_spaces);
+		result = toSymbolicWithSpaces(first_digits, add_spaces);
 		if (add_spaces) {
 			result.emplace_back();
 		}
