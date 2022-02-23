@@ -12,6 +12,7 @@ License: Zlib
 #include <map>
 #include <cstdint>
 #include <stdexcept>
+#include <limits>
 
 
 
@@ -60,13 +61,17 @@ class NumberToGeorgian {
 		/**
 		 * Same as toSymbols(), but with empty elements inserted for space characters, where needed.
 		 */
-		static inline std::vector<std::string> toSymbolicWithSpaces(std::int64_t number, bool add_spaces);
+		template <typename IntegerType>
+		static std::vector<std::string> toSymbolicWithSpaces( // NOLINT(misc-no-recursion)
+				IntegerType number, bool add_spaces);
 
 
 		/**
 		 * A helper for toSymbolicWithSpaces(), high numbers.
 		 */
-		static inline std::vector<std::string> toSymbolicWithSpacesHelperHighNumbers(std::int64_t number, bool add_spaces,
+		template <typename IntegerType>
+		static std::vector<std::string> toSymbolicWithSpacesHelperHighNumbers( // NOLINT(misc-no-recursion)
+				IntegerType number, bool add_spaces,
 				std::int64_t divisor, std::string&& symbolic, std::string&& symbolic_ext);
 
 
@@ -96,7 +101,7 @@ class NumberToGeorgian {
 std::string NumberToGeorgian::toWords(std::int64_t number)
 {
 	std::string result;
-	for (auto&& symbolic : toSymbolicWithSpaces(number, true)) {
+	for (auto&& symbolic : toSymbolicWithSpaces<std::int64_t>(number, true)) {
 		result.append(symbolicToWord(symbolic));
 	}
 	return result;
@@ -106,23 +111,33 @@ std::string NumberToGeorgian::toWords(std::int64_t number)
 
 std::vector<std::string> NumberToGeorgian::toSymbolic(std::int64_t number)
 {
-	return toSymbolicWithSpaces(number, false);
+	return toSymbolicWithSpaces<std::int64_t>(number, false);
 }
 
 
 
+template <typename IntegerType>
 std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc-no-recursion)
-		std::int64_t number, bool add_spaces)
+		IntegerType number, bool add_spaces)
 {
 	using namespace std::string_literals;
 	std::vector<std::string> result;
 
-	if (number < 0) {
-		result = {"minus"s};
-		if (add_spaces) {
-			result.emplace_back();
+	if constexpr(std::is_signed_v<IntegerType>) {
+		if (number < 0) {
+			result = {"minus"s};
+			if (add_spaces) {
+				result.emplace_back();
+			}
+
+			// If the number is minimum of int64, we cannot negate it, so handle this case separately:
+			if (number == std::numeric_limits<std::int64_t>::min()) {
+				return appendToResult(result,
+						toSymbolicWithSpaces<std::uint64_t>(static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()) + 1U, add_spaces));
+			}
+
+			return appendToResult(result, toSymbolicWithSpaces<IntegerType>(-number, add_spaces));
 		}
-		return appendToResult(result, toSymbolicWithSpaces(-number, add_spaces));
 	}
 
 	// Directly representable
@@ -133,25 +148,25 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 	// ოცდა[...]
 	if (number < 40) {
 		result = {"20_"s};
-		return appendToResult(result, toSymbolicWithSpaces(number - 20, add_spaces));
+		return appendToResult(result, toSymbolicWithSpaces<IntegerType>(number - 20, add_spaces));
 	}
 
 	// ორმოცდა[...]
 	if (number < 60) {
 		result = {"40_"s};
-		return appendToResult(result, toSymbolicWithSpaces(number - 40, add_spaces));
+		return appendToResult(result, toSymbolicWithSpaces<IntegerType>(number - 40, add_spaces));
 	}
 
 	// სამოცდა[...]
 	if (number < 80) {
 		result = {"60_"s};
-		return appendToResult(result, toSymbolicWithSpaces(number - 60, add_spaces));
+		return appendToResult(result, toSymbolicWithSpaces<IntegerType>(number - 60, add_spaces));
 	}
 
 	// ოთხმოცდა[...]
 	if (number < 100) {
 		result = {"80_"s};
-		return appendToResult(result, toSymbolicWithSpaces(number - 80, add_spaces));
+		return appendToResult(result, toSymbolicWithSpaces<IntegerType>(number - 80, add_spaces));
 	}
 
 
@@ -171,7 +186,7 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 			result.emplace_back();
 		}
 
-		return appendToResult(result, toSymbolicWithSpaces(remainder, add_spaces));
+		return appendToResult(result, toSymbolicWithSpaces<IntegerType>(remainder, add_spaces));
 	}
 
 
@@ -187,7 +202,7 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 
 		// [...] ათასი.
 		if (remainder == 0) {
-			result = toSymbolicWithSpaces(first_digits, add_spaces);
+			result = toSymbolicWithSpaces<IntegerType>(first_digits, add_spaces);
 			if (add_spaces) {
 				result.emplace_back();
 			}
@@ -198,7 +213,7 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 		// [...] ათას [...].
 		// Also, don't do "ერთი ათას ...".
 		if (first_digits != 1) {
-			result = toSymbolicWithSpaces(first_digits, add_spaces);
+			result = toSymbolicWithSpaces<IntegerType>(first_digits, add_spaces);
 			if (add_spaces) {
 				result.emplace_back();
 			}
@@ -207,7 +222,7 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 		if (add_spaces) {
 			result.emplace_back();
 		}
-		return appendToResult(result, toSymbolicWithSpaces(remainder, add_spaces));
+		return appendToResult(result, toSymbolicWithSpaces<IntegerType>(remainder, add_spaces));
 	}
 
 
@@ -223,7 +238,7 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 
 
 	if (number < 1'000'000'000) {
-		return toSymbolicWithSpacesHelperHighNumbers(number, add_spaces,
+		return toSymbolicWithSpacesHelperHighNumbers<IntegerType>(number, add_spaces,
 				1'000'000, "1e6"s, "1e6_"s);
 	}
 
@@ -240,7 +255,7 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 
 
 	if (number < 1'000'000'000'000) {
-		return toSymbolicWithSpacesHelperHighNumbers(number, add_spaces,
+		return toSymbolicWithSpacesHelperHighNumbers<IntegerType>(number, add_spaces,
 				1'000'000'000, "1e9"s, "1e9_"s);
 	}
 
@@ -257,7 +272,7 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 
 
 	if (number < 1'000'000'000'000'000) {
-		return toSymbolicWithSpacesHelperHighNumbers(number, add_spaces,
+		return toSymbolicWithSpacesHelperHighNumbers<IntegerType>(number, add_spaces,
 				1'000'000'000'000, "1e12"s, "1e12_"s);
 	}
 
@@ -274,7 +289,7 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 
 
 	if (number < 1'000'000'000'000'000'000) {
-		return toSymbolicWithSpacesHelperHighNumbers(number, add_spaces,
+		return toSymbolicWithSpacesHelperHighNumbers<IntegerType>(number, add_spaces,
 				1'000'000'000'000'000, "1e15"s, "1e15_"s);
 	}
 
@@ -291,14 +306,15 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 
 
 	// The limit is ~9 quintillion.
-	return toSymbolicWithSpacesHelperHighNumbers(number, add_spaces,
+	return toSymbolicWithSpacesHelperHighNumbers<IntegerType>(number, add_spaces,
 				1'000'000'000'000'000'000, "1e18"s, "1e18_"s);
 }
 
 
 
+template <typename IntegerType>
 std::vector<std::string> NumberToGeorgian::toSymbolicWithSpacesHelperHighNumbers(  // NOLINT(misc-no-recursion)
-		std::int64_t number, bool add_spaces,
+		IntegerType number, bool add_spaces,
 		std::int64_t divisor, std::string&& symbolic, std::string&& symbolic_ext)
 {
 	using namespace std::string_literals;
@@ -310,7 +326,7 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpacesHelperHighNumbers
 
 	// [...] მილიონი (მილიარდი, ტრილიონი, ...).
 	if (remainder == 0) {
-		result = toSymbolicWithSpaces(first_digits, add_spaces);
+		result = toSymbolicWithSpaces<IntegerType>(first_digits, add_spaces);
 		if (add_spaces) {
 			result.emplace_back();
 		}
@@ -319,7 +335,7 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpacesHelperHighNumbers
 	}
 
 	// [...] მილიონ (მილიარდ, ტრილიონ, ...) [...].
-	result = toSymbolicWithSpaces(first_digits, add_spaces);
+	result = toSymbolicWithSpaces<IntegerType>(first_digits, add_spaces);
 	if (add_spaces) {
 		result.emplace_back();
 	}
@@ -328,7 +344,7 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpacesHelperHighNumbers
 		result.emplace_back();
 	}
 
-	return appendToResult(result, toSymbolicWithSpaces(remainder, add_spaces));
+	return appendToResult(result, toSymbolicWithSpaces<IntegerType>(remainder, add_spaces));
 }
 
 

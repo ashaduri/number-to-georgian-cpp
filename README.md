@@ -23,13 +23,22 @@ files (e.g. `0.wav`, `minus.wav`, ...) to be used in interactive voice applicati
 
 // ...
 
-assert(NumberToGeorgian::toWord(0L) == "ნული"s);
-assert(NumberToGeorgian::toSymbolic(0L) == std::vector<std::string>{"0"s});
+assert(NumberToGeorgian::toWords(0) == "ნული");
+assert(NumberToGeorgian::toSymbolic(0) == std::vector<std::string>{"0"});
 
-assert(NumberToGeorgian::toWords(-6'872'146L)
-	== "მინუს ექვსი მილიონ რვაას სამოცდათორმეტი ათას ას ორმოცდაექვსი"s);
-assert(NumberToGeorgian::toSymbolic(-6'872'146L)
-	== std::vector<std::string>{"minus"s, "6"s, "1e6_"s, "800_"s, "60_"s, "12"s, "1000_"s, "100_"s, "40_"s, "6"s});
+assert(NumberToGeorgian::toWords(-6'872'146)
+	== "მინუს ექვსი მილიონ რვაას სამოცდათორმეტი ათას ას ორმოცდაექვსი");
+assert(NumberToGeorgian::toSymbolic(-6'872'146)
+	== std::vector<std::string>{"minus", "6", "1e6_", "800_", "60_", "12", "1000_", "100_", "40_", "6"});
+
+assert(NumberToGeorgian::toWords(std::numeric_limits<std::int64>::min())
+		== "მინუს ცხრა კვინტილიონ "
+		"ორას ოცდასამი კვადრილიონ "
+		"სამას სამოცდათორმეტი ტრილიონ "
+		"ოცდათექვსმეტი მილიარდ "
+		"რვაას ორმოცდათოთხმეტი მილიონ "
+		"შვიდას სამოცდათხუთმეტი ათას "
+		"რვაას რვა");
 ```
 
 Please see `NumberToGeorgian::toSymbolic` for a list of possible returned values.
