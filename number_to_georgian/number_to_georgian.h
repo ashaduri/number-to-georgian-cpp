@@ -33,8 +33,8 @@ class NumberToGeorgian {
 		 * files (e.g. "0.wav", "minus.wav", ...) to be used in interactive voice applications, etc...
 		 *
 		 * Each element is a string, one of:
-		 * - 0 (ნული).
 		 * - minus (მინუს).
+		 * - 0 (ნული).
 		 * - 1, 2, 3, 4, 5, 6, 7, 8, 9 (ერთი, ორი, სამი, ოთხი, ხუთი, ექვსი, შვიდი, რვა, ცხრა).
 		 * - 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 (ათი, თერთმეტი, თორმეტი, ცამეტი, თოთხმეტი,
 		 * თხუთმეტი, თექვსმეტი, ჩვიდმეტი, თვრამეტი, ცხრამეტი).
@@ -48,6 +48,8 @@ class NumberToGeorgian {
 		 * - 1e6, 1e6_ (მილიონი, მილიონ).
 		 * - 1e9, 1e9_ (მილიარდი, მილიარდ).
 		 * - 1e12, 1e12_ (ტრილიონი, ტრილიონ).
+		 * - 1e15, 1e15_ (კვადრილიონი, კვადრილიონ).
+		 * - 1e18, 1e18_ (კვინტილიონი, კვინტილიონ).
 		 */
 		static inline std::vector<std::string> toSymbolic(std::int64_t number);
 
@@ -290,12 +292,13 @@ std::vector<std::string> NumberToGeorgian::toSymbolicWithSpaces(  // NOLINT(misc
 
 	// The limit is ~9 quintillion.
 	return toSymbolicWithSpacesHelperHighNumbers(number, add_spaces,
-				1'000'000'000'000'000'000, "1e15"s, "1e15_"s);
+				1'000'000'000'000'000'000, "1e18"s, "1e18_"s);
 }
 
 
 
-std::vector<std::string> NumberToGeorgian::toSymbolicWithSpacesHelperHighNumbers(std::int64_t number, bool add_spaces,
+std::vector<std::string> NumberToGeorgian::toSymbolicWithSpacesHelperHighNumbers(  // NOLINT(misc-no-recursion)
+		std::int64_t number, bool add_spaces,
 		std::int64_t divisor, std::string&& symbolic, std::string&& symbolic_ext)
 {
 	using namespace std::string_literals;
